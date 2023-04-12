@@ -38,6 +38,8 @@ BinaryTree::BinaryTree(int data) {
 	std::cout << "Constructor 2 (Binary Tree)" << std::endl;
 	m_Index = 1;
 	Node* m_Root = new Node(data);
+	DEBUG("m_Root->data = ");
+	DEBUGN(m_Root->data);
 }
 
 void BinaryTree::Insert(int data) {
@@ -78,7 +80,7 @@ int BinaryTree::GetData(int pos) const {
 			DEBUGN("Go right "); 
 			prev = temp;
 			temp = temp->right;
-		} else {												// go up
+		} else {										// go up
 			DEBUGN("Go up "); 
 			prev = temp;
 			temp = temp->parent;
@@ -187,8 +189,10 @@ BST::BST() {
 	std::cout << "Constructor 1 (BST)" << std::endl;
 }
 
-BST::BST(int data) : BinaryTree(data) {
+BST::BST(int data) /*: BinaryTree(data)*/ {
 	std::cout << "Constructor 2 (BST)" << std::endl;
+	SetRoot(new Node(data));
+	SetSize(1);
 }
 
 void BST::Insert(int data) {
@@ -197,8 +201,8 @@ void BST::Insert(int data) {
 		return;
 	SetSize(GetSize() + 1);
 	Node* newNode = Node::NewNode(data);
-	DEBUGN(">>>");
-	if (GetRoot()) {
+	DEBUGN("Insert >>>");
+	if (!GetRoot()) {
 		SetRoot(newNode);
 		return;
 	}
@@ -206,7 +210,7 @@ void BST::Insert(int data) {
 	Node* temp = GetRoot();
 	// while (temp->right || temp->left) {
 	for (;;) {
-		DEBUGN(">>>");
+		DEBUGN("Insert 2 >>>");
 		// std::cout << ">>>" << std::endl;
 		if (temp->data > data) {
 			if (temp->left) {
@@ -267,9 +271,12 @@ void BST::Insert(Node* node) {
 bool BST::Search(int data) const {
 	std::cout << "Search " << data << " (BST)" << std::endl;
 	Node* temp = GetRoot();
+	DEBUGN("Search check temp");
 	while (temp) {
+		DEBUG("Search >>>");
 		if (temp->data == data)
 			return true;
+		DEBUGN("Search <<<");
 		if (data < temp->data)
 			temp = temp->left;
 		else
@@ -511,7 +518,7 @@ Node* BST::Remove(int data) {
 // }
 
 Node* BST::GetNode(int data) const {
-	std::cout << "Search " << data << " (BST)" << std::endl;
+	std::cout << "GetNode " << data << " (BST)" << std::endl;
 	Node* temp = GetRoot();
 	while (temp) {
 		if (temp->data == data)

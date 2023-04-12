@@ -5,7 +5,7 @@
 
 
 // uncomment the line below to enable debug mode
-// #define NDEBUG
+#define NDEBUG
 #ifndef NDEBUG
 #define DEBUG(x) 
 #define DEBUGN(x)
