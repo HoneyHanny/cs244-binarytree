@@ -20,12 +20,13 @@ void DisplayMenu(BST* bst) {
 
 int main(void) {
 
-	BST* bst = new BST();
+	BST* bst = new BST(4);
 
 	char op;
 	int data;
 
-	bst->Insert(4);
+	// bst->Insert(4);
+	bst->Print();
 	bst->Insert(2);
 	bst->Insert(1);
 	bst->Insert(3);
@@ -33,8 +34,8 @@ int main(void) {
 	bst->Insert(5);
 	bst->Insert(6);
 	bst->Insert(10);
-	bst->Insert(8);
-	bst->Insert(9);
+	bst->Insert(new Node(8));
+	bst->Insert(Node::NewNode(9));
 
 	do {
 

@@ -98,6 +98,9 @@ void BinaryTree::Print() const {
 	Node* temp = m_Root;
 	Node* prev = temp;
 
+	if (!m_Root)
+		return;
+
 	int printed = 0;
 	while (printed < m_Index) {
 		DEBUG("> ");
@@ -203,7 +206,8 @@ void BST::Insert(int data) {
 	Node* temp = GetRoot();
 	// while (temp->right || temp->left) {
 	for (;;) {
-		std::cout << ">>>" << std::endl;
+		DEBUGN(">>>");
+		// std::cout << ">>>" << std::endl;
 		if (temp->data > data) {
 			if (temp->left) {
 				temp = temp->left;
@@ -227,7 +231,8 @@ void BST::Insert(int data) {
 void BST::Insert(Node* node) {
 	std::cout << "Insert " << node->data << " (BST)" << std::endl;
 	SetSize(GetSize() + 1);
-	std::cout << ">>>" << std::endl;
+	DEBUGN(">>>");
+	// std::cout << ">>>" << std::endl;
 	if (!GetRoot()) {
 		SetRoot(node);
 		return;
@@ -291,7 +296,7 @@ int BST::GetPos(int data) const {
 }
 
 // NOTE: `Remove` doesn't free the node it just return the node
-// If you want to free the node free it using: Delete()
+// If you want to free the node to avoid memory leaks free it using: `Delete`
 //
 // the node is also disconnected from the tree
 Node* BST::Remove(int data) {

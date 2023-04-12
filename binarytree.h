@@ -3,6 +3,8 @@
 
 #include <cstdlib>
 
+
+// uncomment the line below to enable debug mode
 // #define NDEBUG
 #ifndef NDEBUG
 #define DEBUG(x) 
