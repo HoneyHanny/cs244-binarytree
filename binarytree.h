@@ -2,6 +2,7 @@
 #define BINARYTREE_H
 
 #include <cstdlib>
+#include <algorithm>
 
 // uncomment the line below to enable debug mode
 // #define NDEBUG
@@ -28,8 +29,7 @@ struct Node {
 
 	static Node* NewNode(int data);
 
-private:
-	inline void SetHeight() { height = std::max(temp->left->data, temp->right->data) + 1; }
+	inline void SetHeight() { height = std::max(left->data, right->data) + 1; }
 };
 
 class BinaryTree {
@@ -48,7 +48,6 @@ public:
 	virtual Node* Remove(int pos);
 	inline virtual void Delete(int pos) { free(Remove(pos)); }
 	inline int GetSize() const { return m_Index; }
-	inline int GetHeight() const { return m_Height; }
 	void Print() const;
 	void Visualize() const;
 	inline int GetRootData() const { return m_Root->data; }
@@ -58,7 +57,6 @@ protected:
 	virtual Node* GetNode(int pos) const;
 	inline void SetRoot(Node* root) { m_Root = root; }
 	inline void SetSize(int size) { m_Index = size; }
-	// inline void SetHeight(int height) { m_Height = height; }
 
 	
 };
