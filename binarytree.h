@@ -3,9 +3,8 @@
 
 #include <cstdlib>
 
-
 // uncomment the line below to enable debug mode
-#define NDEBUG
+// #define NDEBUG
 #ifndef NDEBUG
 #define DEBUG(x) 
 #define DEBUGN(x)
@@ -20,6 +19,7 @@
 
 struct Node {
 	int data;
+	int height;
 	Node* parent;
 	Node* left;
 	Node* right;
@@ -27,13 +27,15 @@ struct Node {
 	Node(int data);
 
 	static Node* NewNode(int data);
+
+private:
+	inline void SetHeight() { height = std::max(temp->left->data, temp->right->data) + 1; }
 };
 
 class BinaryTree {
 private:
 	int m_Index;
 	Node* m_Root;
-	int m_Height;
 
 public:
 	BinaryTree();
@@ -56,17 +58,18 @@ protected:
 	virtual Node* GetNode(int pos) const;
 	inline void SetRoot(Node* root) { m_Root = root; }
 	inline void SetSize(int size) { m_Index = size; }
-	inline void SetHeight(int height) { m_Height = height; }
+	// inline void SetHeight(int height) { m_Height = height; }
+
 	
 };
 
 class BST : public BinaryTree {
 public:
 	BST();
-	BST(int data);
+	BST(int data); 
 
-	void Insert(int data) override;
 	void Insert(Node* node) override;
+	inline void Insert(int data) override { Insert(Node::NewNode(data)); }
 	bool Search(int data) const override;
 	int GetPos(int data) const;
 	Node* Remove(int data) override;
@@ -74,6 +77,7 @@ public:
 
 protected:
 	Node* GetNode(int data) const override;
+
 
 };
 
