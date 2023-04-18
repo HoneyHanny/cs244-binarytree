@@ -5,8 +5,8 @@
 #include <algorithm>
 
 // uncomment the line below to enable debug mode
-// #define NDEBUG
-#ifndef NDEBUG
+// #define _DEBUG
+#ifndef _DEBUG
 #define DEBUG(x) 
 #define DEBUGN(x)
 #else
@@ -17,6 +17,11 @@
 #define LEFT 0
 #define RIGHT 1
 #define PARENT 2
+
+enum Direction {
+	Left,
+	Right,
+};
 
 struct Node {
 	int data;
@@ -29,7 +34,7 @@ struct Node {
 
 	static Node* NewNode(int data);
 
-	inline void SetHeight() { height = std::max(left->data, right->data) + 1; }
+	void SetHeight();
 };
 
 class BinaryTree {
@@ -57,8 +62,15 @@ protected:
 	virtual Node* GetNode(int pos) const;
 	inline void SetRoot(Node* root) { m_Root = root; }
 	inline void SetSize(int size) { m_Index = size; }
-
-	
+	void UpdateHeight(Node* node);
+	void RotateRight(Node* parent);
+	void RotateLeft(Node* parent);
+	// void RotateNode(Node* node, Direction dir = Direction::Right);
+	void TrinodeRestructure(Node* node);
+	void ZigLeft(Node* z);
+	void ZigRight(Node* z);
+	void ZigZagLeft(Node* z);
+	void ZigZagRight(Node* z);
 };
 
 class BST : public BinaryTree {
@@ -66,8 +78,8 @@ public:
 	BST();
 	BST(int data); 
 
-	void Insert(Node* node) override;
-	inline void Insert(int data) override { Insert(Node::NewNode(data)); }
+	virtual void Insert(Node* node) override;
+	virtual inline void Insert(int data) override { Insert(Node::NewNode(data)); }
 	bool Search(int data) const override;
 	int GetPos(int data) const;
 	Node* Remove(int data) override;
@@ -75,8 +87,17 @@ public:
 
 protected:
 	Node* GetNode(int data) const override;
+};
 
+class AVL : public BST {
+	AVL();
+	AVL(int data);
 
+	void Insert(Node* node) override;
+	virtual inline void Insert(int data) override { Insert(Node::NewNode(data)); }
+
+private:
+	void BalanceTree(Node* node);
 };
 
 #endif // BINARYTREE_H

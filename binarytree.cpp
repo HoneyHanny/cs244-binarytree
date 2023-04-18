@@ -9,6 +9,7 @@
 
 Node::Node(int data) {
 	this->data = data;
+	height = 1;
 	parent = NULL;
 	left = NULL;
 	right = NULL;
@@ -17,10 +18,32 @@ Node::Node(int data) {
 Node* Node::NewNode(int data) {
 	Node* newNode = (Node*)malloc(sizeof(Node));
 	newNode->data = data;
+	newNode->height = 1;
 	newNode->parent = NULL;
 	newNode->left = NULL;
 	newNode->right = NULL;
 	return newNode;
+}
+
+void Node::SetHeight() {
+	if (left && right) {
+		height = std::max(left->height, right->height) + 1; 
+		return;
+	}
+
+	int hLeft, hRight;
+
+	if (left)
+		hLeft = left->height;
+	else
+		hLeft = 0;
+
+	if (right)
+		hRight = right->height;
+	else
+		hRight = 0;
+
+	height = std::max(hLeft, hRight) + 1;
 }
 
 
@@ -37,9 +60,8 @@ BinaryTree::BinaryTree() {
 BinaryTree::BinaryTree(int data) {
 	std::cout << "Constructor 2 (Binary Tree)" << std::endl;
 	m_Index = 1;
-	Node* m_Root = new Node(data);
-	DEBUG("m_Root->data = ");
-	DEBUGN(m_Root->data);
+	Node* m_Root = Node::NewNode(data);
+	DEBUGN("m_Root->data = " << m_Root->data);
 }
 
 void BinaryTree::Insert(int data) {
@@ -90,18 +112,17 @@ int BinaryTree::GetData(int pos) const {
 	return prev->data;
 }
 
-Node* BinaryTree::Remove(int data) {
-	std::cout << "Remove " << data << " (Binary Tree)" << std::endl;
+Node* BinaryTree::Remove(int pos) {
+	std::cout << "Remove " << pos << " (Binary Tree)" << std::endl;
 	return NULL;
 }
 
 void BinaryTree::Print() const {
-	std::cout << "Print (Binary Tree)" << std::endl;	
-	Node* temp = m_Root;
-	Node* prev = temp;
-
+	std::cout << "Print (Binary Tree)" << std::endl;
 	if (!m_Root)
 		return;
+	Node* temp = m_Root;
+	Node* prev = temp;
 
 	int printed = 0;
 	while (printed < m_Index) {
@@ -174,8 +195,125 @@ void BinaryTree::Visualize() const {
 }
 
 Node* BinaryTree::GetNode(int data) const {
-	std::cout << "GetNode " << data << " (Binary Tree)" << std::endl;
+	DEBUGN("GetNode " << data << " (Binary Tree)");
 	return NULL;
+}
+
+void BinaryTree::UpdateHeight(Node* node) {
+	while (node) {
+		node->SetHeight();
+		node = node->parent;
+	}
+}
+
+void BinaryTree::RotateRight(Node* parent) {
+	Node* child = parent->left;
+	
+	parent->left = child->right;
+	child->parent = parent->parent;
+	child->right = parent;
+	parent->parent = child;
+}
+
+void BinaryTree::RotateLeft(Node* parent) {
+	Node* child = parent->right;
+
+	parent->right = child->left;
+	child->parent = parent->parent;
+	child->left = parent;
+	parent->parent = child;
+
+}
+
+// rotate two nodes
+// void BinaryTree::RotateNode(Node* node, Direction dir) {
+// 	DEBUGN("RotateNode " << data << " (Binary Tree)");
+// 
+// 	if (dir == Direction::Right) {
+// 		RotateRight(node);
+// 	} else {
+// 		RotateLeft(node);
+// 	}
+// }
+
+// z y x
+//
+//		+-b-+
+//		|	|
+//		a	c
+//
+//	ZL ZR ZZL ZZR
+//	rotates 3 nodes
+void BinaryTree::TrinodeRestructure(Node* node) {
+	DEBUGN("TrinodeRestructure " << data << " (Binary Tree)");
+	Direction dir1, dir2;
+	Node* child;
+
+	if (node->left->height > node->right->height) {
+		dir1 = Direction::Left;
+		child = node->left;
+	} else {
+		dir1 = Direction::Right;
+		child = node->right;
+	}
+
+	if (child->left->height > child->right->height)
+		dir2 = Direction::Left;
+	else
+		dir2 = Direction::Right;
+	
+	if (dir1 == Direction::Left && dir2 == Direction::Left) // ZR 
+		ZigLeft(node);
+	else if (dir1 == Direction::Right && dir2 == Direction::Right) // ZL
+		ZigRight(node);
+	else if (dir1 == Direction::Left && dir2 == Direction::Right) // ZZR
+		ZigZagRight(node);
+	else if (dir1 == Direction::Right && dir2 == Direction::Left) // ZZL
+		ZigZagLeft(node);
+}
+
+void BinaryTree::ZigLeft(Node* z) {
+	DEBUGN("ZigLeft " << z->data << " (Binary Tree)");
+	Node* y = z->right;
+
+	z->left = y->right;
+	y->right = z;
+	y->parent = z->parent;
+	z->parent = y;
+}
+
+void BinaryTree::ZigRight(Node* z) {
+	DEBUGN("ZigRight " << z->data << " (Binary Tree)");
+	Node* y = z->left;
+
+	z->right = y->left;
+	y->left = z;
+	y->parent = z->parent;
+	z->parent = y;
+}
+
+void  BinaryTree::ZigZagLeft(Node* z) {
+	DEBUGN("ZigZagLeft " << z->data << " (Binary Tree)");
+	Node* y = z->right;
+	Node* x = y->left;
+
+	y->left = x->right;
+	x->right = y;
+	x->parent = y->parent;
+	y->parent = x;
+	ZigRight(z);
+}
+
+void BinaryTree::ZigZagRight(Node* z) {
+	DEBUGN("ZigZagRight " << z->data << " (Binary Tree)");
+	Node* y = z->left;
+	Node* x = y->right;
+
+	y->right = x->left;
+	x->left = y;
+	x->parent = y->parent;
+	y->parent = x;
+	ZigLeft(z);
 }
 
 
@@ -189,69 +327,66 @@ BST::BST() {
 	std::cout << "Constructor 1 (BST)" << std::endl;
 }
 
-BST::BST(int data) /*: BinaryTree(data)*/ {
+BST::BST(int data) : BinaryTree(data) {
 	std::cout << "Constructor 2 (BST)" << std::endl;
-	SetRoot(new Node(data));
-	SetSize(1);
 }
 
-void BST::Insert(int data) {
-	std::cout << "Insert " << data << " (BST)" << std::endl;
-	if (Search(data))
-		return;
-	SetSize(GetSize() + 1);
-	Node* newNode = Node::NewNode(data);
-	DEBUGN("Insert >>>");
-	if (!GetRoot()) {
-		SetRoot(newNode);
-		return;
-	}
-
-	Node* temp = GetRoot();
-	// while (temp->right || temp->left) {
-	for (;;) {
-		DEBUGN("Insert 2 >>>");
-		// std::cout << ">>>" << std::endl;
-		if (temp->data > data) {
-			if (temp->left) {
-				temp = temp->left;
-			} else {
-				temp->left = newNode;
-				newNode->parent = temp;
-				return;
-			}
-		} else {
-			if (temp->right) {
-				temp = temp->right;
-			} else {
-				temp->right = newNode;
-				newNode->parent = temp;
-				return;
-			}
-		}
-	}
-}
+// void BST::Insert(int data) {
+// 	std::cout << "Insert " << data << " (BST)" << std::endl;
+// 	if (Search(data))
+// 		return;
+// 	SetSize(GetSize() + 1);
+// 	Node* newNode = Node::NewNode(data);
+// 	DEBUGN("Insert >>>");
+// 	if (!GetRoot()) {
+// 		SetRoot(newNode);
+// 		return;
+// 	}
+// 
+// 	Node* temp = GetRoot();
+// 	for (;;) {
+// 		DEBUGN("Insert 2 >>>");
+// 		if (temp->data > data) {
+// 			if (temp->left) {
+// 				temp = temp->left;
+// 			} else {
+// 				temp->left = newNode;
+// 				newNode->parent = temp;
+// 				SetHeight(temp);
+// 				return;
+// 			}
+// 		} else {
+// 			if (temp->right) {
+// 				temp = temp->right;
+// 			} else {
+// 				temp->right = newNode;
+// 				newNode->parent = temp;
+// 				SetHeight(temp);
+// 				return;
+// 			}
+// 		}
+// 	}
+// }
 
 void BST::Insert(Node* node) {
 	std::cout << "Insert " << node->data << " (BST)" << std::endl;
 	SetSize(GetSize() + 1);
 	DEBUGN(">>>");
-	// std::cout << ">>>" << std::endl;
 	if (!GetRoot()) {
 		SetRoot(node);
 		return;
 	}
 
 	Node* temp = GetRoot();
-	// while (temp->right || temp->left) {
 	for (;;) {
-		std::cout << ">>>" << std::endl;
+		DEBUGN(">>>");
 		if (temp->data > node->data) {
 			if (temp->left) {
 				temp = temp->left;
 			} else {
 				temp->left = node;
 				node->parent = temp;
+				UpdateHeight(temp);
 				return;
 			}
 		} else {
@@ -260,6 +395,7 @@ void BST::Insert(Node* node) {
 			} else {
 				temp->right = node;
 				node->parent = temp;
+				UpdateHeight(temp);
 				return;
 			}
 		}
@@ -312,7 +448,7 @@ Node* BST::Remove(int data) {
 	if (!temp)
 		return NULL;
 
-	if (!temp->right && !temp->left) {
+	if (!temp->right && !temp->left) { // if one child has NULL
 	
 		DEBUGN(">>> if");
 
@@ -353,13 +489,7 @@ Node* BST::Remove(int data) {
 		DEBUGN(">>> else");
 		Node* leftMost = temp->right;
 
-		DEBUG("temp->right->data = ");
-		DEBUGN(temp->right->data);
-		// int dirFrmPrnt;
-		// if (temp->parent->right == temp)
-		// 	dirFrmPrnt = RIGHT;
-		// else
-		// 	dirFrmPrnt = LEFT;
+		DEBUGN("temp->right->data = " << temp->right->data);
 
 		// search for leftmost
 		while (leftMost->left)
@@ -368,7 +498,7 @@ Node* BST::Remove(int data) {
 		// replace original node 
 		
 		// check if no left
-		if (leftMost != temp->right) {// if true then has leftmost
+		if (leftMost != temp->right) { // if true then has leftmost
 			leftMost->parent->left = leftMost->right;
 			leftMost->right->parent = leftMost->parent;
 		}
@@ -382,7 +512,6 @@ Node* BST::Remove(int data) {
 		} else {
 
 			// check direction from temp->parent
-			// if (dirFrmPrnt == RIGHT)
 			if (temp->parent->right == temp)
 				temp->parent->right = leftMost;
 			else
@@ -411,112 +540,6 @@ Node* BST::Remove(int data) {
 	return temp;
 }
 
-// deletes a node from the tree
-// void BST::Delete(int data) {
-// 	std::cout << "Delete " << data << " (BST)" << std::endl;
-// 	Node* temp = GetNode(data);
-// 	if (!temp)
-// 		return;
-// 
-// 	if (!temp->right && !temp->left) {
-// 	
-// 		DEBUGN(">>> if");
-// 
-// 		// check direction from parent
-// 		if (temp->parent->right == temp)
-// 			temp->parent->right = NULL;
-// 		else
-// 			temp->parent->left = NULL;
-// 
-// 	} else if (temp->right) {
-// 
-// 		DEBUGN(">>> right == NULL");
-// 		if (temp->parent->right == temp) {
-// 			temp->parent->right = temp->left;
-// 			temp->left->parent = temp->parent;
-// 		} else if (temp->parent->left == temp) {
-// 			temp->parent->left = temp->left;
-// 			temp->left->parent = temp->parent;
-// 		}
-// 
-// 	} else if (!temp->left) {
-// 		
-// 		DEBUGN(">>> left == NULL");
-// 		if (temp->parent->right == temp) {
-// 			temp->parent->right = temp->right;
-// 			temp->right->parent = temp->parent;
-// 		} else if (temp->parent->left == temp) {
-// 			temp->parent->left = temp->right;
-// 			temp->right->parent = temp->parent;
-// 		}
-// 	
-// 	} else {
-// 
-// 		// 1. move one right and left all the way
-// 		// 2. replace the original to the leftmost
-// 		// 3. and delete leftmost
-// 
-// 		DEBUGN(">>> else");
-// 		Node* leftMost = temp->right;
-// 
-// 		DEBUG("temp->right->data = ");
-// 		DEBUGN(temp->right->data);
-// 		// int dirFrmPrnt;
-// 		// if (temp->parent->right == temp)
-// 		// 	dirFrmPrnt = RIGHT;
-// 		// else
-// 		// 	dirFrmPrnt = LEFT;
-// 
-// 		// search for leftmost
-// 		while (leftMost->left)
-// 			leftMost = leftMost->left;
-// 
-// 		// replace original node 
-// 		
-// 		// check if no left
-// 		if (leftMost != temp->right) {// if true then has leftmost
-// 			leftMost->parent->left = leftMost->right;
-// 			leftMost->right->parent = leftMost->parent;
-// 		}
-// 		
-// 		leftMost->parent = temp->parent;
-// 
-// 		if (temp == GetRoot()) { // if temp is root
-// 			
-// 			SetRoot(leftMost);
-// 
-// 		} else {
-// 
-// 			// check direction from temp->parent
-// 			// if (dirFrmPrnt == RIGHT)
-// 			if (temp->parent->right == temp)
-// 				temp->parent->right = leftMost;
-// 			else
-// 				temp->parent->left = leftMost;
-// 
-// 		}
-// 
-// 		// leftmost point to temp left child
-// 		leftMost->left = temp->left;
-// 		if (leftMost != temp->right) {
-// 			leftMost->right = temp->right;
-// 			temp->right->parent = leftMost;
-// 		}
-// 		
-// 		// left child of temp point to leftMost
-// 		if (temp->left)
-// 			temp->left->parent = leftMost;
-// 
-// 	}
-// 
-// 	temp->parent = NULL;
-// 	temp->right = NULL;
-// 	temp->left = NULL;
-// 
-// 	SetSize(GetSize() - 1);
-// 	free(temp);
-// }
-
 Node* BST::GetNode(int data) const {
 	std::cout << "GetNode " << data << " (BST)" << std::endl;
 	Node* temp = GetRoot();
@@ -532,17 +555,39 @@ Node* BST::GetNode(int data) const {
 	return NULL;
 }
 
-// Node* BST::Search(int data) {
-// 	std::cout << "Search " << data << " (BST)" << std::endl;
-// 	Node* temp = GetRoot();
-// 	while (temp) {
-// 		if (temp->data == data)
-// 			return temp;
-// 		if (data < temp->data)
-// 			temp = temp->left;
-// 		else
-// 			temp = temp->right;
-// 	}
-// 
-// 	return NULL;
-// }
+
+// +———————————————————————————————————+
+// │	[SECTION]	AVL			       │
+// +———————————————————————————————————+
+
+void AVL::BalanceTree(Node* node) {
+	while (node) {
+		int diff = abs(node->left->height - node->right->height);
+
+		// Rebalance this shit
+		// curr node is z
+		// its child is y
+		// its grandchild is x
+		// identify if ZL ZR ZZL ZZR
+		// set to a, b, c order
+		if (diff > 1) { 
+						
+			Node* z = node;
+			Node* y;
+			if (node->left->height > node->right->height)
+				y = node->left;
+			else
+				y = node->right;
+			Node* x;
+			if (y->left->height > y->right->height)
+				x = y->left;
+			else
+				x = y->right;
+
+			TrinodeRestructure(node);		
+		
+		}
+		node->SetHeight();
+		node = node->parent;
+	}
+}
