@@ -1,6 +1,4 @@
 #include "binarytree.h"
-#include <cstdlib>
-#include <iostream>
 
 
 // +———————————————————————————————————+
@@ -127,23 +125,18 @@ void BinaryTree::Print() const {
 	int printed = 0;
 	while (printed < m_Index) {
 		DEBUG("> ");
-		// && temp->right != prev
-		// 
 		
 		if ((prev == temp->left || !temp->left) && prev != temp->right) {
 			DEBUG("1st cond : ");
 			++printed;
 			std::cout << temp->data << ", ";
-			// DEBUGN("");
 		} else if (!temp->right && !temp->left) {
 			DEBUG("2nd cond: ");
 			++printed;
 			std::cout << temp->data << ", ";
-			// DEBUGN("");
 		}
 		
 		DEBUG("> ");
-		// && prev != temp->right
 		if (temp->left != prev && temp->left && prev != temp->right) {		// go left
 			DEBUGN("Go left "); 
 			prev = temp;
@@ -448,17 +441,20 @@ Node* BST::Remove(int data) {
 	if (!temp)
 		return NULL;
 
-	if (!temp->right && !temp->left) { // if one child has NULL
+	if (!temp->right && !temp->left) { // if no child 
 	
 		DEBUGN(">>> if");
 
 		// check direction from parent
-		if (temp->parent->right == temp)
+		if (temp->parent->right == temp) {
 			temp->parent->right = NULL;
-		else
+		} else {
 			temp->parent->left = NULL;
+		}
 
-	} else if (!temp->right) {
+		UpdateHeight(temp->parent);
+
+	} else if (!temp->right) { // if right = NULL 
 
 		DEBUGN(">>> right == NULL");
 		if (temp->parent->right == temp) {
@@ -469,7 +465,9 @@ Node* BST::Remove(int data) {
 			temp->left->parent = temp->parent;
 		}
 
-	} else if (!temp->left) {
+		UpdateHeight(temp->parent);
+
+	} else if (!temp->left) { // if left = NULL 
 		
 		DEBUGN(">>> left == NULL");
 		if (temp->parent->right == temp) {
@@ -479,8 +477,10 @@ Node* BST::Remove(int data) {
 			temp->parent->left = temp->right;
 			temp->right->parent = temp->parent;
 		}
+
+		UpdateHeight(temp->parent);
 	
-	} else {
+	} else { // if has two child
 
 		// 1. move one right and left all the way
 		// 2. replace the original to the leftmost
@@ -488,6 +488,7 @@ Node* BST::Remove(int data) {
 
 		DEBUGN(">>> else");
 		Node* leftMost = temp->right;
+		Node* lmParent;
 
 		DEBUGN("temp->right->data = " << temp->right->data);
 
@@ -495,13 +496,15 @@ Node* BST::Remove(int data) {
 		while (leftMost->left)
 			leftMost = leftMost->left;
 
-		// replace original node 
+		// replace original node
 		
 		// check if no left
 		if (leftMost != temp->right) { // if true then has leftmost
 			leftMost->parent->left = leftMost->right;
 			leftMost->right->parent = leftMost->parent;
 		}
+		// found leftmost
+		lmParent = leftMost->parent;
 	
 		leftMost->parent = temp->parent;
 
@@ -509,7 +512,7 @@ Node* BST::Remove(int data) {
 			
 			SetRoot(leftMost);
 
-		} else {
+		} else { // if temp is not root
 
 			// check direction from temp->parent
 			if (temp->parent->right == temp)
@@ -519,9 +522,11 @@ Node* BST::Remove(int data) {
 
 		}
 
+		// SWAP
+
 		// leftmost point to temp left child
 		leftMost->left = temp->left;
-		if (leftMost != temp->right) {
+		if (leftMost != temp->right) { // if leftmost is not a child of temp
 			leftMost->right = temp->right;
 			temp->right->parent = leftMost;
 		}
@@ -529,6 +534,8 @@ Node* BST::Remove(int data) {
 		// left child of temp point to leftMost
 		if (temp->left)
 			temp->left->parent = leftMost;
+
+		UpdateHeight(lmParent);
 
 	}
 
@@ -559,6 +566,166 @@ Node* BST::GetNode(int data) const {
 // +———————————————————————————————————+
 // │	[SECTION]	AVL			       │
 // +———————————————————————————————————+
+
+AVL::AVL() {
+	DEBUGN("Constructor 1 (AVL)");
+}
+
+AVL::AVL(int data) : BST(data) {
+	DEBUGN("Constructor 2 (AVL)");
+}
+
+void AVL::Insert(Node* node) {
+	DEBUGN("Insert " << node->data << " (AVL)");
+	SetSize(GetSize() + 1);
+	DEBUGN(">>>");
+	if (!GetRoot()) {
+		SetRoot(node);
+		return;
+	}
+
+	Node* temp = GetRoot();
+	for (;;) {
+		DEBUGN(">>>");
+		if (temp->data > node->data) {
+			if (temp->left) {
+				temp = temp->left;
+			} else {
+				temp->left = node;
+				node->parent = temp;
+				BalanceTree(node);
+				return;
+			}
+		} else {
+			if (temp->right) {
+				temp = temp->right;
+			} else {
+				temp->right = node;
+				node->parent = temp;
+				BalanceTree(node);
+				return;
+			}
+		}
+	}
+}
+
+// NOTE: `Remove` doesn't free the node it just return the node
+// If you want to free the node to avoid memory leaks free it using: `Delete`
+//
+// the node is also disconnected from the tree
+Node* AVL::Remove(int data) {
+	DEBUGN("Remove " << data << " (AVL)");
+	Node* temp = GetNode(data);
+	if (!temp)
+		return NULL;
+
+	if (!temp->right && !temp->left) { // if both child is null 
+	
+		DEBUGN(">>> left && right == NULL");
+
+		// check direction from parent
+		if (temp->parent->right == temp) {
+			temp->parent->right = NULL;
+		} else {
+			temp->parent->left = NULL;
+		}
+
+		BalanceTree(temp->parent);
+
+	} else if (!temp->right) { // if right = NULL 
+
+		DEBUGN(">>> right == NULL");
+		if (temp->parent->right == temp) {
+			temp->parent->right = temp->left;
+			temp->left->parent = temp->parent;
+		} else if (temp->parent->left == temp) {
+			temp->parent->left = temp->left;
+			temp->left->parent = temp->parent;
+		}
+
+
+		BalanceTree(temp->parent);
+
+	} else if (!temp->left) { // if left = NULL 
+		
+		DEBUGN(">>> left == NULL");
+		if (temp->parent->right == temp) {
+			temp->parent->right = temp->right;
+			temp->right->parent = temp->parent;
+		} else if (temp->parent->left == temp) {
+			temp->parent->left = temp->right;
+			temp->right->parent = temp->parent;
+		}
+
+		BalanceTree(temp->parent);
+	
+	} else { // if has two child
+
+		// 1. move one right and left all the way
+		// 2. replace the original to the leftmost
+		// 3. and delete leftmost
+
+		DEBUGN(">>> else");
+		Node* leftMost = temp->right;
+		Node* lmParent;
+
+		DEBUGN("temp->right->data = " << temp->right->data);
+
+		// search for leftmost
+		while (leftMost->left)
+			leftMost = leftMost->left;
+
+		// replace original node
+		
+		// check if no left
+		if (leftMost != temp->right) { // if true then has leftmost
+			leftMost->parent->left = leftMost->right;
+			leftMost->right->parent = leftMost->parent;
+		} // found leftmost
+
+		// save leftmost parent for later
+		lmParent = leftMost->parent;
+	
+		leftMost->parent = temp->parent;
+
+		if (temp == GetRoot()) { // if temp is root
+			
+			SetRoot(leftMost);
+
+		} else { // if temp is not root
+
+			// check direction from temp->parent
+			if (temp->parent->right == temp)
+				temp->parent->right = leftMost;
+			else
+				temp->parent->left = leftMost;
+
+		}
+
+		// SWAP
+
+		// leftmost point to temp left child
+		leftMost->left = temp->left;
+		if (leftMost != temp->right) { // if leftmost is not a child of temp
+			leftMost->right = temp->right;
+			temp->right->parent = leftMost;
+		}
+		
+		// left child of temp point to leftMost
+		if (temp->left)
+			temp->left->parent = leftMost;
+
+		BalanceTree(lmParent);
+
+	}
+
+	temp->parent = NULL;
+	temp->right = NULL;
+	temp->left = NULL;
+
+	SetSize(GetSize() - 1);
+	return temp;
+}
 
 void AVL::BalanceTree(Node* node) {
 	while (node) {

@@ -1,8 +1,9 @@
 #ifndef BINARYTREE_H
 #define BINARYTREE_H
 
-#include <cstdlib>
+#include <iostream>
 #include <algorithm>
+#include <cstdlib>
 
 // uncomment the line below to enable debug mode
 // #define _DEBUG
@@ -82,8 +83,8 @@ public:
 	virtual inline void Insert(int data) override { Insert(Node::NewNode(data)); }
 	bool Search(int data) const override;
 	int GetPos(int data) const;
-	Node* Remove(int data) override;
-	inline void Delete(int data) override { free(Remove(data)); }
+	virtual Node* Remove(int data) override;
+	virtual inline void Delete(int data) override { free(Remove(data)); }
 
 protected:
 	Node* GetNode(int data) const override;
@@ -94,7 +95,9 @@ class AVL : public BST {
 	AVL(int data);
 
 	void Insert(Node* node) override;
-	virtual inline void Insert(int data) override { Insert(Node::NewNode(data)); }
+	inline void Insert(int data) override { Insert(Node::NewNode(data)); }
+	Node* Remove(int data) override;
+	inline void Delete(int data) override { free(Remove(data)); }
 
 private:
 	void BalanceTree(Node* node);
